@@ -1,0 +1,66 @@
+{
+  "name": "dependency-engine-checker",
+  "version": "0.1.0",
+  "description": "Checks dependencies have compatible Node engine versions",
+  "type": "module",
+  "main": "./build/code/index.js",
+  "exports": {
+    "import": "./build/code/index.js",
+    "require": "./build/wrapper.cjs"
+  },
+  "engines": {
+    "node": "18.18.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:peterjwest/dependency-engine-checker.git"
+  },
+  "files": [
+    "/build"
+  ],
+  "author": "Peter West",
+  "bugs": {
+    "url": "https://github.com/peterjwest/dependency-engine-checker/issues"
+  },
+  "keywords": [
+    "string",
+    "multline",
+    "dedent",
+    "deindent",
+    "es6"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/peterjwest/dependency-engine-checker#readme",
+  "scripts": {
+    "build": "rm -rf build/code && tsup src/index.ts --format cjs,esm --dts --out-dir build/code",
+    "lint:dependency-engines": "tsx src/index.ts",
+    "lint": "eslint .",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run",
+    "test:snippets": "test-snippets",
+    "preinstall": "npx only-allow pnpm"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.9",
+    "@babel/eslint-parser": "^7.24.8",
+    "@types/lodash": "^4.17.7",
+    "@types/node": "^20.14.11",
+    "@types/semver": "^7.5.8",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "@vitest/coverage-v8": "^2.0.4",
+    "eslint": "^9.7.0",
+    "eslint-plugin-node-dependencies": "^0.12.0",
+    "lodash": "^4.17.21",
+    "only-allow": "^1.2.1",
+    "semver": "^7.6.3",
+    "sinon": "^18.0.0",
+    "test-snippets": "^1.0.0",
+    "tsup": "^8.2.2",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.4",
+    "yaml": "^2.4.5",
+    "zod": "^3.23.8"
+  }
+}

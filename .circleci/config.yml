@@ -1,0 +1,199 @@
+version: 2.1
+
+orbs:
+  coveralls: coveralls/coveralls@1.0.6
+
+references:
+  pnpm-cache-key-latest: &pnpm-cache-key-latest
+    v1-dependency-pnpm-{{ .Branch }}-{{ checksum "pnpm-lock.yaml" }}-latest
+  pnpm-cache-key: &pnpm-cache-key
+    v1-dependency-pnpm-{{ .Branch }}-{{ checksum "pnpm-lock.yaml" }}
+  pnpm-backup-cache-key: &pnpm-backup-cache-key
+    v1-dependency-pnpm-{{ .Branch }}-
+  pnpm-backup-cache-key-no-branch: &pnpm-backup-cache-key-no-branch
+    v1-dependency-pnpm-
+
+  node-old: &node-old
+    cimg/node:18.20.4
+  node-mid: &node-mid
+    cimg/node:20.15.1
+  node-new: &node-new
+    cimg/node:22.4.1
+
+  node-old-latest: &node-old-latest
+    cimg/node:18.20.4
+  node-mid-latest: &node-mid-latest
+    cimg/node:20.15.1
+  node-new-latest: &node-new-latest
+    cimg/node:22.4.1
+
+
+
+commands:
+  install-dependencies:
+    steps:
+      - run:
+          name: PNPM version
+          command: pnpm --version
+      - restore_cache:
+          name: Restore pnpm cache
+          keys:
+            - *pnpm-cache-key
+            - *pnpm-backup-cache-key
+            - *pnpm-backup-cache-key-no-branch
+      - run:
+          name: Install dependencies
+          command: pnpm install
+      - save_cache:
+          name: Save pnpm cache
+          key: *pnpm-cache-key
+          paths:
+            - node_modules
+
+  install-dependencies-latest:
+    steps:
+      - run:
+          name: PNPM version
+          command: pnpm --version
+      - restore_cache:
+          keys:
+            - *pnpm-cache-key-latest
+            - *pnpm-cache-key
+            - *pnpm-backup-cache-key
+            - *pnpm-backup-cache-key-no-branch
+      - run:
+          name: Upgrade dependencies lockfile and install
+          command: pnpm update --latest
+      - run:
+          name: Output dependencies diff
+          command: git --no-pager diff
+      - save_cache:
+          name: Save pnpm cache
+          key: *pnpm-cache-key-latest
+          paths:
+            - node_modules
+
+  checks:
+    steps:
+      - run:
+          name: Lint Typescript code
+          command: pnpm lint
+      - run:
+          name: Audit production dependencies
+          command: pnpm audit --prod
+
+  build:
+    steps:
+      - run:
+          name: Build project
+          command: pnpm build
+
+  tests:
+    steps:
+      - run:
+          name: TS Unit tests
+          command: pnpm test:coverage
+      - run:
+          name: Test documentation snippets
+          command: pnpm test:snippets
+      - store_artifacts:
+          path: coverage
+      - store_test_results:
+          path: ~/test-results/
+
+jobs:
+  checks:
+    docker:
+      - image: *node-old
+    steps:
+      - checkout
+      - install-dependencies
+      - checks
+
+  test-node-old:
+    docker:
+      - image: *node-old
+    steps:
+      - checkout
+      - install-dependencies
+      - build
+      - tests
+
+  test-node-mid:
+    docker:
+      - image: *node-mid
+    steps:
+      - checkout
+      - install-dependencies
+      - build
+      - tests
+
+  test-node-new:
+    docker:
+      - image: *node-new
+    steps:
+      - checkout
+      - install-dependencies
+      - build
+      - tests
+      - coveralls/upload
+
+  checks-latest:
+    docker:
+      - image: *node-old
+    steps:
+      - checkout
+      - install-dependencies-latest
+      - checks
+
+  test-node-old-latest:
+    docker:
+      - image: *node-old-latest
+    steps:
+      - checkout
+      - install-dependencies-latest
+      - build
+      - tests
+
+  test-node-mid-latest:
+    docker:
+      - image: *node-mid-latest
+    steps:
+      - checkout
+      - install-dependencies-latest
+      - build
+      - tests
+
+  test-node-new-latest:
+    docker:
+      - image: *node-new-latest
+    steps:
+      - checkout
+      - install-dependencies-latest
+      - build
+      - tests
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - checks
+      - test-node-old
+      - test-node-mid
+      - test-node-new
+
+  weekly:
+    jobs:
+      - checks
+      - checks-latest
+      - test-node-old-latest
+      - test-node-mid-latest
+      - test-node-new-latest
+    triggers:
+      - schedule:
+          # Midnight on Sunday
+          cron: "0 0 * * 0"
+          filters:
+            branches:
+              only:
+                - main

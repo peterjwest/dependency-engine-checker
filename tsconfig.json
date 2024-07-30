@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "declaration": true,
+    "sourceMap": true,
+    "module": "es2022",
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "alwaysStrict": true,
+    "baseUrl": ".",
+    "esModuleInterop": true
+  },
+  "include": [
+    "**/*.ts"
+  ]
+}
